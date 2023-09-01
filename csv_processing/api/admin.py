@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import TransactionHistory
 
-# Register your models here.
+
+@admin.register(TransactionHistory)
+class TransactionHistoryAdmin(admin.ModelAdmin):
+    """Регистрация модели сделок в админ-панели."""
+
+    list_display = ("customer", "item", "total", "quantity", "date")
