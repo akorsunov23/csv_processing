@@ -4,7 +4,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-
+from rest_framework.parsers import FileUploadParser
 from .serialisers import LoadCSVSerialisers
 from .services import load_csv_data
 
@@ -12,7 +12,8 @@ from .services import load_csv_data
 class LoadCSVAPIView(CreateAPIView):
     """Загрузка и обработка .csv файла."""
 
-    serializer_class = LoadCSVSerialisers
+    # serializer_class = LoadCSVSerialisers
+    parser_classes = (FileUploadParser, )
 
     def create(self, request, *args, **kwargs):
         """Сохранение данных загруженного файла в БД."""
