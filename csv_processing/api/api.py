@@ -75,10 +75,10 @@ class FavoriteUsersAPIView(APIView):
     def get(self, request, *args, **kwargs):
         result = get_favorites()
 
-        if isinstance(result, list):
+        if isinstance(result, list) and len(result) > 0:
             serializer = self.serializer_class(data=result, many=True)
             if serializer.is_valid():
                 return Response(status=status.HTTP_200_OK, data=serializer.data)
             return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': 'Ошибка при обработке запроса.'})
-        return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': 'Ошибка при обработке запроса.'})
+        return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': f'Данных нет. {result}'})
     

@@ -6,9 +6,11 @@ django-redis==5.3.0
 django-rest-framework==0.1.0
 djangorestframework==3.14.0
 drf-spectacular==0.26.4
+gunicorn==21.2.0
 inflection==0.5.1
 jsonschema==4.19.0
 jsonschema-specifications==2023.7.1
+packaging==23.1
 psycopg2-binary==2.9.7
 python-dotenv==1.0.0
 pytz==2023.3
