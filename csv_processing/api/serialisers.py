@@ -4,10 +4,14 @@ from rest_framework import serializers
 class LoadCSVSerialisers(serializers.Serializer):
     """Сериализатор для загрузки файла .csv"""
 
-    file = serializers.FileField(required=True, )
+    file = serializers.FileField()
 
     def validate(self, file) -> bool:
         """Проверка формата файла."""
         if file.name.lower().endswith(".csv"):
             return True
         return False
+
+class ResponseLoadSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    data = serializers.CharField()
