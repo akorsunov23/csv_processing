@@ -3,7 +3,7 @@ from typing import Union
 from django.db.models.aggregates import Count, Sum
 
 from .models import TransactionHistory
-
+from django.core.cache import cache
 
 def load_csv_data(csv_reader: dict) -> Union[bool, tuple]:
     """Обработка и загрузка данных .csv в БД."""
@@ -21,6 +21,7 @@ def load_csv_data(csv_reader: dict) -> Union[bool, tuple]:
                 for row in csv_reader
             ]
         )
+        cache.delete(key='favorites')
         return True
     except Exception as ex:
         print(ex.args)
@@ -31,6 +32,9 @@ def get_favorites():
     """Фильтрация модели сделок для получения фаворитов."""
     
     try:
+        result = cache.get(key='favorites')
+        if result is not None:
+            return result
         top_customers = (
             TransactionHistory.objects.values("customer")
             .annotate(spent_money=Sum("total"))
@@ -55,7 +59,7 @@ def get_favorites():
                     "gems": list(gems),
                 }
             )
-
+        cache.set(key='favorites', value=result)
         return result
     except Exception as ex:
         return ex

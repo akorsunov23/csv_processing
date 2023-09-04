@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
 
-    'api',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -142,4 +142,11 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'CSV PROCESSING',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL'),
+    }
 }

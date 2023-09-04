@@ -1,4 +1,8 @@
+from typing import Any, Dict, Tuple
 from django.db import models
+from django.dispatch import receiver
+from django.core.cache import cache
+from django.db.models.signals import post_save, pre_delete, pre_save
 
 class TransactionHistory(models.Model):
     """Модель истории сделок."""
@@ -15,3 +19,10 @@ class TransactionHistory(models.Model):
 
     def __str__(self) -> str:
         return f'Сделка №{self.pk} от {self.date.date}'
+    
+
+@receiver(pre_delete, sender=TransactionHistory)
+@receiver(pre_save, sender=TransactionHistory)
+def on_delete_cache(**kwargs):
+    """Удаление кэша при изменении Истории сделок."""
+    cache.delete(key="favorites")

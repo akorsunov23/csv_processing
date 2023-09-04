@@ -63,7 +63,7 @@ class FavoriteUsersAPIView(APIView):
     """Получение списка покупателей потративших наибольшую сумму за весь период."""
 
     serializer_class = UsersSerialiser
-
+    
     @extend_schema(
         summary="Get favorites",
         responses={
@@ -71,6 +71,7 @@ class FavoriteUsersAPIView(APIView):
             404: ResponseSerializer,
         },
     )
+    
     def get(self, request, *args, **kwargs):
         result = get_favorites()
 
