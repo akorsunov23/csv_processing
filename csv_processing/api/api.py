@@ -3,13 +3,16 @@ import csv
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serialisers import LoadCSVSerialisers, ResponseLoadSerializer
-from .services import load_csv_data
+from .serialisers import (
+    LoadCSVSerialisers, 
+    ResponseSerializer,
+    UsersSerialiser
+    )
+from .services import get_favorites, load_csv_data
 
 
 class LoadCSVAPIView(APIView):
@@ -21,9 +24,9 @@ class LoadCSVAPIView(APIView):
     @extend_schema(
         summary="Upload CSV file",
         responses={
-            200: ResponseLoadSerializer,
-            409: ResponseLoadSerializer,
-            400: ResponseLoadSerializer,
+            200: ResponseSerializer,
+            409: ResponseSerializer,
+            400: ResponseSerializer,
         },
     )
     def post(self, request, *args, **kwargs):
@@ -54,3 +57,27 @@ class LoadCSVAPIView(APIView):
             status=status.HTTP_400_BAD_REQUEST,
             data={"msg": "Необходимо добавить файл."},
         )
+
+
+class FavoriteUsersAPIView(APIView):
+    """Получение списка покупателей потративших наибольшую сумму за весь период."""
+
+    serializer_class = UsersSerialiser
+
+    @extend_schema(
+        summary="Get favorites",
+        responses={
+            200: serializer_class,
+            404: ResponseSerializer,
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        result = get_favorites()
+
+        if isinstance(result, list):
+            serializer = self.serializer_class(data=result, many=True)
+            if serializer.is_valid():
+                return Response(status=status.HTTP_200_OK, data=serializer.data)
+            return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': 'Ошибка при обработке запроса.'})
+        return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': 'Ошибка при обработке запроса.'})
+    

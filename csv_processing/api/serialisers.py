@@ -12,6 +12,17 @@ class LoadCSVSerialisers(serializers.Serializer):
             return True
         return False
 
-class ResponseLoadSerializer(serializers.Serializer):
+
+class UsersSerialiser(serializers.Serializer):
+    """Сериализатор ответа на запрос о покупателях."""
+
+    username = serializers.CharField()
+    spent_money = serializers.IntegerField()
+    gems = serializers.ListField()
+
+
+class ResponseSerializer(serializers.Serializer):
+    """Сериальзатор ответа на запрос загрузки файла."""
+
     status = serializers.CharField()
     data = serializers.CharField()
