@@ -1,84 +1,61 @@
-import csv
-
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.exceptions import ParseError, ValidationError, NotFound
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serialisers import (
-    LoadCSVSerialisers, 
-    ResponseSerializer,
-    UsersSerialiser
-    )
+from .serialisers import LoadCSVSerializers, ResponseSerializers, UsersSerializers
 from .services import get_favorites, load_csv_data
 
 
 class LoadCSVAPIView(APIView):
     """Загрузка и обработка .csv файла."""
 
-    serializer_class = LoadCSVSerialisers
+    serializer_class = LoadCSVSerializers
     parser_classes = (MultiPartParser,)
 
     @extend_schema(
         summary="Upload CSV file",
         responses={
-            200: ResponseSerializer,
-            409: ResponseSerializer,
-            400: ResponseSerializer,
+            200: ResponseSerializers,
+            400: ResponseSerializers,
         },
     )
-    def post(self, request, *args, **kwargs):
+    def post(self, *args, **kwargs):
         """Сохранение данных загруженного файла в БД."""
         file: InMemoryUploadedFile = self.request.FILES.get("file")
         serializer = self.serializer_class()
-        if file:
-            if serializer.validate(file=file):
-                csv_file = file.read().decode("utf-8-sig")
-                csv_reader = csv.DictReader(csv_file.splitlines(), delimiter=",")
-                response = load_csv_data(csv_reader=csv_reader)
-                if not isinstance(response, tuple):
-                    return Response(
-                        status=status.HTTP_200_OK,
-                        data={"msg": "Файл обработан без ошибок."},
-                    )
+        if file and serializer.validate(file=file):
+            response, msg = load_csv_data(file=file)
+            if response:
                 return Response(
-                    status=status.HTTP_409_CONFLICT,
-                    data={
-                        "msg": f"Произошла ошибка при обработке файла. {response[1]}"
-                    },
+                    status=status.HTTP_200_OK,
+                    data={"msg": msg},
                 )
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={"msg": "Не верный формат файла."},
+            raise ValidationError(
+                detail=f"Произошла ошибка "
+                       f"при обработке файла. {msg}"
             )
-        return Response(
-            status=status.HTTP_400_BAD_REQUEST,
-            data={"msg": "Необходимо добавить файл."},
-        )
+        raise ParseError(detail="Ошибка при обработке.")
 
 
 class FavoriteUsersAPIView(APIView):
     """Получение списка покупателей потративших наибольшую сумму за весь период."""
 
-    serializer_class = UsersSerialiser
-    
+    serializer_class = UsersSerializers
+
     @extend_schema(
         summary="Get favorites",
         responses={
             200: serializer_class,
-            404: ResponseSerializer,
+            404: ResponseSerializers,
         },
     )
-    
-    def get(self, request, *args, **kwargs):
-        result = get_favorites()
-
-        if isinstance(result, list) and len(result) > 0:
-            serializer = self.serializer_class(data=result, many=True)
-            if serializer.is_valid():
-                return Response(status=status.HTTP_200_OK, data=serializer.data)
-            return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': 'Ошибка при обработке запроса.'})
-        return Response(status=status.HTTP_404_NOT_FOUND, data={'msg': f'Данных нет. {result}'})
-    
+    def get(self, *args, **kwargs):
+        favorites = get_favorites()
+        serializer = self.serializer_class(data=favorites, many=True)
+        if serializer.is_valid():
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        raise NotFound(detail="Ошибка при обработке запроса.")

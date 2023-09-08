@@ -1,14 +1,21 @@
-from typing import Union
+import csv
 
+from django.core.cache import cache
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.aggregates import Count, Sum
 
 from .models import TransactionHistory
-from django.core.cache import cache
 
-def load_csv_data(csv_reader: dict) -> Union[bool, tuple]:
+
+def load_csv_data(file: InMemoryUploadedFile) -> tuple:
     """Обработка и загрузка данных .csv в БД."""
-
     try:
+        csv_file = file.read().decode("utf-8-sig")
+        csv_reader: csv.DictReader = csv.DictReader(
+            csv_file.splitlines(),
+            delimiter=","
+        )
+
         TransactionHistory.objects.bulk_create(
             [
                 TransactionHistory(
@@ -21,18 +28,16 @@ def load_csv_data(csv_reader: dict) -> Union[bool, tuple]:
                 for row in csv_reader
             ]
         )
-        cache.delete(key='favorites')
-        return True
+        cache.delete(key="favorites")
+        return True, "Файл обработан без ошибок."
     except Exception as ex:
-        print(ex.args)
         return False, ex.args
 
 
 def get_favorites():
     """Фильтрация модели сделок для получения фаворитов."""
-    
     try:
-        result = cache.get(key='favorites')
+        result = cache.get(key="favorites")
         if result is not None:
             return result
         top_customers = (
@@ -59,7 +64,7 @@ def get_favorites():
                     "gems": list(gems),
                 }
             )
-        cache.set(key='favorites', value=result)
+        cache.set(key="favorites", value=result)
         return result
     except Exception as ex:
         return ex

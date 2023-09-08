@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class LoadCSVSerialisers(serializers.Serializer):
+class LoadCSVSerializers(serializers.Serializer):
     """Сериализатор для загрузки файла .csv"""
 
     file = serializers.FileField()
@@ -13,7 +13,7 @@ class LoadCSVSerialisers(serializers.Serializer):
         return False
 
 
-class UsersSerialiser(serializers.Serializer):
+class UsersSerializers(serializers.Serializer):
     """Сериализатор ответа на запрос о покупателях."""
 
     username = serializers.CharField()
@@ -21,7 +21,7 @@ class UsersSerialiser(serializers.Serializer):
     gems = serializers.ListField()
 
 
-class ResponseSerializer(serializers.Serializer):
+class ResponseSerializers(serializers.Serializer):
     """Сериальзатор ответа на запрос загрузки файла."""
 
     status = serializers.CharField()
